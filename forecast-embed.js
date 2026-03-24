@@ -33,13 +33,6 @@
 .fw-bd { padding: 20px 24px; }\
 .fw-ctx { font-size: 13px; color: #6b7280; line-height: 1.55; margin-bottom: 18px; padding: 12px 14px; background: #f9fafb; border-radius: 8px; border-left: 3px solid #3b82f6; }\
 .fw-lbl { font-size: 12px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }\
-.fw-opts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }\
-.fw-opt { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; background: #fff; cursor: pointer; font-size: 14px; font-weight: 500; color: #374151; }\
-.fw-opt:hover { border-color: #3b82f6; background: #eff6ff; }\
-.fw-opt.sel { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }\
-.fw-dot { width: 20px; height: 20px; border: 2px solid #d1d5db; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }\
-.fw-opt.sel .fw-dot { border-color: #3b82f6; background: #3b82f6; }\
-.fw-opt.sel .fw-dot::after { content: ""; display: block; width: 8px; height: 8px; background: #fff; border-radius: 50%; }\
 .fw-slider-wrap { margin-bottom: 16px; }\
 .fw-slider-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }\
 .fw-slider-label { font-size: 13px; font-weight: 500; color: #374151; width: 120px; flex-shrink: 0; }\
@@ -212,43 +205,86 @@
     root.appendChild(card);
   }
 
-  // ── Voting view ──
+  // ── Voting view (universal sliders for any number of options) ──
   function showVoting(q, ct) {
     ct.innerHTML = '';
-    if (q.options.length === 2) {
-      showSliderVoting(q, ct);
-    } else {
-      showOptionVoting(q, ct);
-    }
-  }
+    var n = q.options.length;
+    var vals = [];
+    var base = Math.floor(100 / n);
+    for (var i = 0; i < n; i++) vals[i] = base;
+    vals[0] = 100 - base * (n - 1);
 
-  function showSliderVoting(q, ct) {
     var wrap = document.createElement('div');
     wrap.className = 'fw-slider-wrap';
-    var val = 50;
+    var html = '';
+    for (var i = 0; i < n; i++) {
+      html += '<div class="fw-slider-row">' +
+        '<span class="fw-slider-label">' + esc(q.options[i]) + '</span>' +
+        '<input type="range" class="fw-slider" min="0" max="100" value="' + vals[i] + '" data-i="' + i + '">' +
+        '<span class="fw-slider-pct">' + vals[i] + '%</span></div>';
+    }
+    html += '<div style="text-align:right;font-size:11px;color:#9ca3af;margin-bottom:12px">Total: <b class="fw-total">100</b>%</div>';
+    wrap.innerHTML = html;
 
-    var row = document.createElement('div');
-    row.className = 'fw-slider-row';
-    row.innerHTML = '<span class="fw-slider-label">' + esc(q.options[0]) + '</span>' +
-      '<input type="range" class="fw-slider" min="1" max="99" value="50">' +
-      '<span class="fw-slider-pct">50%</span>';
-    wrap.appendChild(row);
+    var sliders = wrap.querySelectorAll('.fw-slider');
+    var spans = wrap.querySelectorAll('.fw-slider-pct');
+    var totEl = wrap.querySelector('.fw-total');
 
-    var row2 = document.createElement('div');
-    row2.className = 'fw-slider-row';
-    row2.innerHTML = '<span class="fw-slider-label">' + esc(q.options[1]) + '</span>' +
-      '<div style="flex:1"></div><span class="fw-slider-pct">50%</span>';
-    wrap.appendChild(row2);
+    function rebalance(changed) {
+      var newVal = parseInt(sliders[changed].value);
+      var oldVal = vals[changed];
+      var diff = newVal - oldVal;
+      if (diff === 0) return;
 
-    var slider = wrap.querySelector('.fw-slider');
-    var pct1 = row.querySelector('.fw-slider-pct');
-    var pct2 = row2.querySelector('.fw-slider-pct');
+      // Collect indices of other sliders
+      var others = [];
+      for (var i = 0; i < n; i++) if (i !== changed) others.push(i);
 
-    slider.addEventListener('input', function() {
-      val = parseInt(this.value);
-      pct1.textContent = val + '%';
-      pct2.textContent = (100 - val) + '%';
-    });
+      // Sum of other slider values
+      var otherSum = 0;
+      for (var i = 0; i < others.length; i++) otherSum += vals[others[i]];
+
+      // If no room to take from others, cap
+      if (otherSum === 0 && diff > 0) {
+        newVal = oldVal;
+        sliders[changed].value = newVal;
+        return;
+      }
+
+      // Distribute the diff proportionally among others
+      for (var i = 0; i < others.length; i++) {
+        var idx = others[i];
+        var share = otherSum > 0 ? vals[idx] / otherSum : 1 / others.length;
+        var take = Math.round(diff * share);
+        vals[idx] = Math.max(0, vals[idx] - take);
+      }
+      vals[changed] = newVal;
+
+      // Fix rounding to ensure sum is exactly 100
+      var sum = 0;
+      for (var i = 0; i < n; i++) sum += vals[i];
+      var fix = 100 - sum;
+      if (fix !== 0) {
+        for (var i = 0; i < n; i++) {
+          if (i !== changed && vals[i] + fix >= 0) { vals[i] += fix; break; }
+        }
+      }
+
+      // Update display
+      for (var i = 0; i < n; i++) {
+        sliders[i].value = vals[i];
+        spans[i].textContent = vals[i] + '%';
+      }
+      var check = 0;
+      for (var i = 0; i < n; i++) check += vals[i];
+      totEl.textContent = check;
+    }
+
+    for (var i = 0; i < n; i++) {
+      sliders[i].addEventListener('input', function() {
+        rebalance(parseInt(this.getAttribute('data-i')));
+      });
+    }
 
     var ratBox = document.createElement('div');
     ratBox.className = 'fw-rat-box';
@@ -259,11 +295,14 @@
     btn.textContent = 'Submit My Forecast';
     btn.addEventListener('click', function() {
       var probObj = {};
-      probObj[q.options[0]] = val;
-      probObj[q.options[1]] = 100 - val;
+      var best = 0;
+      var pick = q.options[0];
+      for (var i = 0; i < n; i++) {
+        probObj[q.options[i]] = vals[i];
+        if (vals[i] > best) { best = vals[i]; pick = q.options[i]; }
+      }
       setProb(q.id, probObj);
       addHistory(q.id, probObj);
-      var pick = val >= 50 ? q.options[0] : q.options[1];
       setVote(q.id, pick);
       addTally(q.id, pick);
       var ratText = ratBox.querySelector('.fw-rat-input').value.trim();
@@ -272,57 +311,6 @@
     });
 
     ct.appendChild(wrap);
-    ct.appendChild(ratBox);
-    ct.appendChild(btn);
-  }
-
-  function showOptionVoting(q, ct) {
-    var sel = null;
-    var od = document.createElement('div');
-    od.className = 'fw-opts';
-
-    for (var i = 0; i < q.options.length; i++) {
-      (function(opt) {
-        var b = document.createElement('button');
-        b.className = 'fw-opt';
-        b.innerHTML = '<span>' + esc(opt) + '</span><span class="fw-dot"></span>';
-        b.addEventListener('click', function() {
-          var all = od.querySelectorAll('.fw-opt');
-          for (var j = 0; j < all.length; j++) all[j].classList.remove('sel');
-          b.classList.add('sel');
-          sel = opt;
-          btn.disabled = false;
-        });
-        od.appendChild(b);
-      })(q.options[i]);
-    }
-
-    var ratBox = document.createElement('div');
-    ratBox.className = 'fw-rat-box';
-    ratBox.innerHTML = '<textarea class="fw-rat-input" placeholder="Share your reasoning (optional)..." maxlength="500"></textarea>';
-
-    var btn = document.createElement('button');
-    btn.className = 'fw-btn';
-    btn.textContent = 'Submit My Forecast';
-    btn.disabled = true;
-    btn.addEventListener('click', function() {
-      if (!sel) return;
-      setVote(q.id, sel);
-      addTally(q.id, sel);
-      var probObj = {};
-      var base = Math.floor(100 / q.options.length);
-      for (var k = 0; k < q.options.length; k++) {
-        probObj[q.options[k]] = base;
-      }
-      probObj[sel] = 100 - base * (q.options.length - 1);
-      setProb(q.id, probObj);
-      addHistory(q.id, probObj);
-      var ratText = ratBox.querySelector('.fw-rat-input').value.trim();
-      if (ratText) addRationale(q.id, ratText, sel);
-      refreshCard(q);
-    });
-
-    ct.appendChild(od);
     ct.appendChild(ratBox);
     ct.appendChild(btn);
   }
@@ -357,12 +345,16 @@
     pForecast.className = 'fw-panel active';
     pForecast.setAttribute('data-panel', 'forecast');
 
-    if (myProb && q.options.length === 2) {
-      var crowdVal = myProb[q.options[0]] || 50;
+    if (myProb) {
+      var bestVal = 0;
+      var bestLbl = q.options[0];
+      for (var j = 0; j < q.options.length; j++) {
+        if ((myProb[q.options[j]] || 0) > bestVal) { bestVal = myProb[q.options[j]]; bestLbl = q.options[j]; }
+      }
       var crowdDiv = document.createElement('div');
       crowdDiv.className = 'fw-crowd';
-      crowdDiv.innerHTML = '<span class="fw-crowd-val">' + crowdVal + '%</span>' +
-        '<span class="fw-crowd-info"><strong>Crowd Forecast: ' + esc(q.options[0]) + '</strong><br>' + tot + ' forecaster' + (tot !== 1 ? 's' : '') + '</span>';
+      crowdDiv.innerHTML = '<span class="fw-crowd-val">' + bestVal + '%</span>' +
+        '<span class="fw-crowd-info"><strong>Crowd Forecast: ' + esc(bestLbl) + '</strong><br>' + tot + ' forecaster' + (tot !== 1 ? 's' : '') + '</span>';
       pForecast.appendChild(crowdDiv);
     }
 
