@@ -1,0 +1,336 @@
+<!--
+  ╔═══════════════════════════════════════════════════════════════════╗
+  ║  INTERACTIVE FORECAST WIDGET - Webflow Embed Code                ║
+  ║                                                                   ║
+  ║  HOW TO USE IN WEBFLOW:                                          ║
+  ║  1. Open your Webflow page in the Designer                       ║
+  ║  2. Drag an "Embed" element where you want the forecasts         ║
+  ║  3. Paste this ENTIRE file contents into the embed code editor   ║
+  ║  4. Publish your site                                            ║
+  ║                                                                   ║
+  ║  TO CUSTOMIZE:                                                    ║
+  ║  - Edit the questions array at the bottom of this file           ║
+  ║  - Change colors in the CSS section                              ║
+  ║  - Add/remove questions as needed                                ║
+  ╚═══════════════════════════════════════════════════════════════════╝
+-->
+
+<style>
+  .fw-container {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .fw-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    margin-bottom: 24px;
+    overflow: hidden;
+    border: 1px solid #e8e8e8;
+    transition: box-shadow 0.2s ease;
+  }
+  .fw-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+  .fw-header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    padding: 20px 24px;
+  }
+  .fw-deadline {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    color: #a8d8ea;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+  .fw-question {
+    color: #ffffff;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.45;
+    margin: 0;
+  }
+  .fw-body { padding: 20px 24px; }
+  .fw-context {
+    font-size: 13px;
+    color: #6b7280;
+    line-height: 1.55;
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    background: #f9fafb;
+    border-radius: 8px;
+    border-left: 3px solid #3b82f6;
+  }
+  .fw-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+  }
+  .fw-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .fw-option-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+  }
+  .fw-option-btn:hover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+  }
+  .fw-option-btn.fw-selected {
+    border-color: #3b82f6;
+    background: #eff6ff;
+    color: #1d4ed8;
+  }
+  .fw-option-btn.fw-selected .fw-radio {
+    border-color: #3b82f6;
+    background: #3b82f6;
+  }
+  .fw-option-btn.fw-selected .fw-radio::after {
+    content: '';
+    display: block;
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+  }
+  .fw-radio {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #d1d5db;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+  }
+  .fw-submit-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.3px;
+  }
+  .fw-submit-btn:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59,130,246,0.35);
+  }
+  .fw-submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  .fw-results {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .fw-result-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .fw-result-label {
+    width: 140px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    flex-shrink: 0;
+    text-align: right;
+  }
+  .fw-bar-track {
+    flex: 1;
+    height: 28px;
+    background: #f3f4f6;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .fw-bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.8s cubic-bezier(0.25,0.46,0.45,0.94);
+    min-width: 2px;
+  }
+  .fw-bar-fill.fw-c0 { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+  .fw-bar-fill.fw-c1 { background: linear-gradient(90deg, #ef4444, #f87171); }
+  .fw-bar-fill.fw-c2 { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+  .fw-bar-fill.fw-c3 { background: linear-gradient(90deg, #10b981, #34d399); }
+  .fw-bar-fill.fw-c4 { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+  .fw-result-pct {
+    width: 48px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1f2937;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .fw-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid #f3f4f6;
+  }
+  .fw-vote-count { font-size: 12px; color: #9ca3af; }
+  .fw-your-vote { font-size: 12px; color: #3b82f6; font-weight: 600; }
+  .fw-change-btn {
+    font-size: 12px;
+    color: #6b7280;
+    background: none;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 4px 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .fw-change-btn:hover {
+    color: #3b82f6;
+    border-color: #3b82f6;
+    background: #eff6ff;
+  }
+  @media (max-width: 600px) {
+    .fw-header { padding: 16px 18px; }
+    .fw-body { padding: 16px 18px; }
+    .fw-question { font-size: 15px; }
+    .fw-result-label { width: 100px; font-size: 12px; }
+  }
+</style>
+
+<div id="fw-root"></div>
+
+<script>
+(function() {
+  'use strict';
+  var SK = 'forecast_widget_votes';
+  var TK = SK + '_tallies';
+
+  function loadVotes() { try { return JSON.parse(localStorage.getItem(SK)||'{}'); } catch(e) { return {}; } }
+  function saveVote(id,opt) { var v=loadVotes(); v[id]=opt; localStorage.setItem(SK,JSON.stringify(v)); }
+  function loadTallies() { try { return JSON.parse(localStorage.getItem(TK)||'{}'); } catch(e) { return {}; } }
+  function saveTallies(t) { localStorage.setItem(TK,JSON.stringify(t)); }
+  function addTally(id,opt) { var t=loadTallies(); if(!t[id])t[id]={}; t[id][opt]=(t[id][opt]||0)+1; saveTallies(t); return t[id]; }
+  function rmTally(id,opt) { var t=loadTallies(); if(t[id]&&t[id][opt])t[id][opt]=Math.max(0,t[id][opt]-1); saveTallies(t); return t[id]||{}; }
+  function total(tl) { return Object.values(tl).reduce(function(s,v){return s+v;},0); }
+  function esc(s) { var d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+  function renderQ(q, root) {
+    var votes=loadVotes(), voted=votes[q.id]!==undefined;
+    var card=document.createElement('div'); card.className='fw-card'; card.id='fw-card-'+q.id;
+    card.innerHTML='<div class="fw-header"><div class="fw-deadline">'+esc(q.deadline)+'</div><p class="fw-question">'+esc(q.question)+'</p></div><div class="fw-body">'+(q.context?'<div class="fw-context">'+esc(q.context)+'</div>':'')+'<div class="fw-label">'+(voted?'Community Forecast':'What do you think?')+'</div><div class="fw-content"></div></div>';
+    var ct=card.querySelector('.fw-content');
+    if(voted) showResults(q,ct,votes[q.id]); else showVoting(q,ct);
+    root.appendChild(card);
+  }
+
+  function showVoting(q, ct) {
+    var sel=null;
+    var od=document.createElement('div'); od.className='fw-options';
+    q.options.forEach(function(opt){
+      var b=document.createElement('button'); b.className='fw-option-btn';
+      b.innerHTML='<span>'+esc(opt)+'</span><span class="fw-radio"></span>';
+      b.addEventListener('click',function(){
+        od.querySelectorAll('.fw-option-btn').forEach(function(x){x.classList.remove('fw-selected');});
+        b.classList.add('fw-selected'); sel=opt; sb.disabled=false;
+      });
+      od.appendChild(b);
+    });
+    var sb=document.createElement('button'); sb.className='fw-submit-btn'; sb.textContent='Submit My Forecast'; sb.disabled=true;
+    sb.addEventListener('click',function(){
+      if(!sel)return; saveVote(q.id,sel); addTally(q.id,sel);
+      var card=document.getElementById('fw-card-'+q.id);
+      card.querySelector('.fw-label').textContent='Community Forecast';
+      var c=card.querySelector('.fw-content'); c.innerHTML=''; showResults(q,c,sel);
+    });
+    ct.appendChild(od); ct.appendChild(sb);
+  }
+
+  function showResults(q, ct, uv) {
+    var tl=loadTallies(), tally=tl[q.id]||{}, tot=total(tally);
+    var rd=document.createElement('div'); rd.className='fw-results';
+    q.options.forEach(function(opt,i){
+      var cnt=tally[opt]||0, pct=tot>0?Math.round(cnt/tot*100):0;
+      var row=document.createElement('div'); row.className='fw-result-row';
+      row.innerHTML='<span class="fw-result-label">'+esc(opt)+'</span><div class="fw-bar-track"><div class="fw-bar-fill fw-c'+(i%5)+'" style="width:0%"></div></div><span class="fw-result-pct">'+pct+'%</span>';
+      rd.appendChild(row);
+      requestAnimationFrame(function(){requestAnimationFrame(function(){row.querySelector('.fw-bar-fill').style.width=pct+'%';});});
+    });
+    var ft=document.createElement('div'); ft.className='fw-footer';
+    ft.innerHTML='<span class="fw-vote-count">'+tot+' forecast'+(tot!==1?'s':'')+'</span><span class="fw-your-vote">Your forecast: '+esc(uv)+'</span><button class="fw-change-btn">Change</button>';
+    ft.querySelector('.fw-change-btn').addEventListener('click',function(){
+      var v=loadVotes(), old=v[q.id]; if(old)rmTally(q.id,old);
+      delete v[q.id]; localStorage.setItem(SK,JSON.stringify(v));
+      var card=document.getElementById('fw-card-'+q.id);
+      card.querySelector('.fw-label').textContent='What do you think?';
+      var c=card.querySelector('.fw-content'); c.innerHTML=''; showVoting(q,c);
+    });
+    ct.appendChild(rd); ct.appendChild(ft);
+  }
+
+  /* ── CONFIGURE YOUR QUESTIONS HERE ── */
+  var questions = [
+    {
+      id: 'ont-infra-1',
+      question: 'Will the Ontario government allocate more than $5 billion CAD to infrastructure repair in the 2026-2027 provincial budget?',
+      deadline: 'Before 1 April 2027',
+      options: ['Yes', 'No'],
+      context: 'Ontario\'s infrastructure deficit has been estimated at over $50 billion. Recent reports highlight crumbling roads, aging water systems, and deteriorating bridges across the province.'
+    },
+    {
+      id: 'ont-infra-2',
+      question: 'Will Ontario experience a major infrastructure failure (bridge collapse, water system contamination, or transit shutdown lasting 7+ days) before January 2027?',
+      deadline: 'Before 1 January 2027',
+      options: ['Yes', 'No', 'Uncertain'],
+      context: 'Multiple engineering assessments have flagged critical infrastructure across Ontario as at risk of failure without immediate investment.'
+    },
+    {
+      id: 'ont-infra-3',
+      question: 'Which approach will be most effective in addressing Ontario\'s infrastructure gap over the next decade?',
+      deadline: 'Long-term outlook',
+      options: ['Increased public spending', 'Public-private partnerships (P3s)', 'Federal-provincial cost sharing', 'Municipal bond financing', 'Asset recycling programs'],
+      context: 'Various funding models have been proposed to tackle the province\'s growing infrastructure deficit. Each approach carries different trade-offs in terms of cost, timeline, and public accountability.'
+    },
+    {
+      id: 'ont-infra-4',
+      question: 'Will the federal government announce a dedicated infrastructure resilience fund for climate adaptation in Canadian provinces before October 2026?',
+      deadline: 'Before 1 October 2026',
+      options: ['Yes', 'No'],
+      context: 'Climate change is accelerating infrastructure deterioration across Canada. Extreme weather events have caused billions in damage, prompting calls for dedicated adaptation funding.'
+    }
+  ];
+
+  var root = document.getElementById('fw-root');
+  var wrap = document.createElement('div'); wrap.className='fw-container';
+  root.appendChild(wrap);
+  questions.forEach(function(q){ renderQ(q, wrap); });
+})();
+</script>
