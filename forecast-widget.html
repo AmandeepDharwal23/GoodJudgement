@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Interactive Forecast Widget - Preview</title>
   <style>
-    /* Reset for preview page only */
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: #f5f5f5;
@@ -28,14 +27,12 @@
     <h1>Interactive Forecast Widget - Preview</h1>
     <p style="text-align:center;color:#666;margin-bottom:40px;">
       Below are sample forecast questions styled like Good Judgement Open.<br>
-      Copy the embed code from <code>forecast-embed.html</code> into your Webflow custom code block.
+      Copy the embed code from <code>forecast-embed-webflow.html</code> into your Webflow custom code block.
     </p>
 
-    <!-- Embed the widget -->
     <div id="forecast-widget-root"></div>
   </div>
 
-  <!-- Include the embed script -->
   <script src="forecast-embed.js"></script>
   <script>
     ForecastWidget.init({
@@ -43,41 +40,37 @@
       questions: [
         {
           id: 'ont-infra-1',
-          question: 'Will the Ontario government allocate more than $5 billion CAD to infrastructure repair in the 2026-2027 provincial budget?',
-          deadline: 'Before 1 April 2027',
-          type: 'yes-no',
+          question: 'Will Ontario allocate more than $5B CAD to infrastructure repair in the 2026-2027 budget?',
+          deadline: 'Before 1 Apr 2027',
           options: ['Yes', 'No'],
-          context: 'Ontario\'s infrastructure deficit has been estimated at over $50 billion. Recent reports highlight crumbling roads, aging water systems, and deteriorating bridges across the province.'
+          context: 'Ontario\'s infrastructure deficit is estimated at over $50B, with aging roads, water systems, and bridges.'
         },
         {
           id: 'ont-infra-2',
-          question: 'Will Ontario experience a major infrastructure failure (bridge collapse, water system contamination, or transit shutdown lasting 7+ days) before January 2027?',
-          deadline: 'Before 1 January 2027',
-          type: 'yes-no-uncertain',
+          question: 'Will Ontario experience a major infrastructure failure before January 2027?',
+          deadline: 'Before 1 Jan 2027',
           options: ['Yes', 'No', 'Uncertain'],
-          context: 'Multiple engineering assessments have flagged critical infrastructure across Ontario as at risk of failure without immediate investment.'
+          context: 'Multiple assessments have flagged critical infrastructure as at risk without immediate investment.'
         },
         {
           id: 'ont-infra-3',
-          question: 'Which approach will be most effective in addressing Ontario\'s infrastructure gap over the next decade?',
+          question: 'Which approach will best address Ontario\'s infrastructure gap over the next decade?',
           deadline: 'Long-term outlook',
-          type: 'multiple',
           options: [
             'Increased public spending',
-            'Public-private partnerships (P3s)',
+            'Public-private partnerships',
             'Federal-provincial cost sharing',
             'Municipal bond financing',
             'Asset recycling programs'
           ],
-          context: 'Various funding models have been proposed to tackle the province\'s growing infrastructure deficit. Each approach carries different trade-offs in terms of cost, timeline, and public accountability.'
+          context: 'Various funding models carry different trade-offs in cost, timeline, and accountability.'
         },
         {
           id: 'ont-infra-4',
-          question: 'Will the federal government announce a dedicated infrastructure resilience fund for climate adaptation in Canadian provinces before October 2026?',
-          deadline: 'Before 1 October 2026',
-          type: 'yes-no',
+          question: 'Will the federal government announce a dedicated infrastructure resilience fund before October 2026?',
+          deadline: 'Before 1 Oct 2026',
           options: ['Yes', 'No'],
-          context: 'Climate change is accelerating infrastructure deterioration across Canada. Extreme weather events have caused billions in damage, prompting calls for dedicated adaptation funding.'
+          context: 'Extreme weather has caused billions in damage, prompting calls for climate adaptation funding.'
         }
       ]
     });
