@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Forecast Widget - Preview</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      padding: 40px 20px;
+      margin: 0;
+    }
+    .preview-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .preview-container h1 {
+      text-align: center;
+      color: #1a1a2e;
+      margin-bottom: 40px;
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-container">
+    <h1>Interactive Forecast Widget - Preview</h1>
+    <p style="text-align:center;color:#666;margin-bottom:40px;">
+      Below are sample forecast questions styled like Good Judgement Open.<br>
+      Copy the embed code from <code>forecast-embed-webflow.html</code> into your Webflow custom code block.
+    </p>
+
+    <div id="forecast-widget-root"></div>
+  </div>
+
+  <script src="forecast-embed.js"></script>
+  <script>
+    ForecastWidget.init({
+      container: '#forecast-widget-root',
+      questions: [
+        {
+          id: 'ont-infra-1',
+          question: 'Will Ontario allocate more than $5B CAD to infrastructure repair in the 2026-2027 budget?',
+          deadline: 'Before 1 Apr 2027',
+          options: ['Yes', 'No'],
+          context: 'Ontario\'s infrastructure deficit is estimated at over $50B, with aging roads, water systems, and bridges.'
+        },
+        {
+          id: 'ont-infra-2',
+          question: 'Will Ontario experience a major infrastructure failure before January 2027?',
+          deadline: 'Before 1 Jan 2027',
+          options: ['Yes', 'No', 'Uncertain'],
+          context: 'Multiple assessments have flagged critical infrastructure as at risk without immediate investment.'
+        },
+        {
+          id: 'ont-infra-3',
+          question: 'Which approach will best address Ontario\'s infrastructure gap over the next decade?',
+          deadline: 'Long-term outlook',
+          options: [
+            'Increased public spending',
+            'Public-private partnerships',
+            'Federal-provincial cost sharing',
+            'Municipal bond financing',
+            'Asset recycling programs'
+          ],
+          context: 'Various funding models carry different trade-offs in cost, timeline, and accountability.'
+        },
+        {
+          id: 'ont-infra-4',
+          question: 'Will the federal government announce a dedicated infrastructure resilience fund before October 2026?',
+          deadline: 'Before 1 Oct 2026',
+          options: ['Yes', 'No'],
+          context: 'Extreme weather has caused billions in damage, prompting calls for climate adaptation funding.'
+        }
+      ]
+    });
+  </script>
+</body>
+</html>
